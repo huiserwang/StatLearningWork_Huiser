@@ -1,6 +1,7 @@
 import numpy as np
 import os
 from knn import libKNN
+import glob
 
 def op_load_csv(path):
     f = open(path, 'r')
@@ -18,7 +19,7 @@ def op_write_csv(test_files, test_pred_labels, out):
     for i,each in enumerate(test_files):
         all_out.append('{},{}'.format(each,int(test_pred_labels[i])))
     content = '\n'.join(all_out)
-    f = open(out, 'w')
+    f = open(out, 'w+')
     f.writelines(content)
     f.close()
 def op_merge_data(labels, prefix, concat=True):
@@ -44,8 +45,19 @@ def op_merge_data(labels, prefix, concat=True):
         label_data = np.concatenate(label_data)
         feats_data = np.concatenate(feats_data)
     return label_data, feats_data
+def op_get_test(path, concat=True):
+    files = glob.glob(os.path.join(path, "*.npy"))
+    names_list = []
+    feats_list = []
+    for each in files:
+        npy_data = op_load_npy(each)
+        feats_list.append(npy_data)
+        names_list.append(each.split('/')[-1])
+    if concat:
+        test_data = np.concatenate(feats_list)
+    return names_list, test_data
 
-def preprocess_data(label, feats, mode='norm'):
+def preprocess_data(feats, label=None, mode='norm', shuffle=True, test=False):
     """preprocess func
 
     Args:
@@ -56,41 +68,60 @@ def preprocess_data(label, feats, mode='norm'):
         feats_data (np.ndarray): feats for all frames, shape [1334*100, 15]
     """
     if mode == 'norm':
-        N = label.shape[0] if isinstance(label, np.ndarray) else len(label)*label[0].shape[0]
-        label_data = label
-        feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1)).reshape(N,1)
-        unkeep = np.unique(np.argwhere(np.isnan(feats_data)==True)[:,0])
-        keep = np.ones(len(label_data)).astype(np.bool)
-        keep[unkeep] = False
-    elif mode == 'xxx':
+        N = feats.shape[0] if isinstance(feats, np.ndarray) else len(feats)*feats[0].shape[0]
+        if label is not None:
+            label_data = label
+        if test:
+            feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1) + 1e-5).reshape(N,1)
+        else:
+            feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1)).reshape(N,1)
+            unkeep = np.unique(np.argwhere(np.isnan(feats_data)==True)[:,0])
+        keep = np.ones(feats_data.shape[0]).astype(np.bool)
+        if not test:
+            keep[unkeep] = False
+    elif mode == 'unnorm':
         pass
-    return label_data[keep], feats_data[keep]
+    idx = np.arange(feats_data[keep].shape[0])
+    if shuffle:
+        np.random.shuffle(idx)
+    if label is not None:
+        return label_data[keep][idx], feats_data[keep][idx]
+    else:
+        return feats_data[keep][idx]
 
 def main():
     train_dir = './train/'
     test_dir  = './test/'
     label_train = './label_train.csv'
+    out_path = '/home/wangxuehui/work/test_result_1215_03.csv'
 
     # load labels and corresponding feats
     label = op_load_csv(label_train)
     labels,feats = op_merge_data(label, train_dir, concat=True)
+    test_names, test_feat = op_get_test(test_dir)
+
     # preprocess
-    train_labels, train_feats = preprocess_data(labels, feats, mode='norm') #133400 frames, each frame has 15 channels.
+    train_labels, train_feats = preprocess_data(feats, label=labels, mode='norm') #133400 frames, each frame has 15 channels.
+    test_feats = preprocess_data(test_feat, mode='norm', shuffle=False, test=True)
 
     # model init and training
+    #KNN model
     classifier = libKNN(n_neighbors=5, algo='auto')
+    #SVM model
+    #other model
     classifier.train(train_labels, train_feats)
 
     # evaluation on training set
-    classifier.eval(train_labels, train_feats)
+    # classifier.eval(train_labels, train_feats)
 
     # inference for test set
+    pred_labels = classifier.test(test_feats)
     # test_file_names: all file names, [0023.npy, 1245.pny, ....]
     # test_pred_labels: predicted labels for each file, [0,1,2,0,....]
     # len(test_file_names) == len(test_pred_labels)
-    test_file_names = None
-    test_pred_labels = None
-    op_write_csv(test_file_names, test_pred_labels, out='~/test_results.csv')
+    test_file_names = test_names
+    test_pred_labels = pred_labels
+    op_write_csv(test_file_names, test_pred_labels, out=out_path)
 
 if __name__ == "__main__":
     main()

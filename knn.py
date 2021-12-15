@@ -15,4 +15,12 @@ class libKNN():
         diff = pred - train_labels
         correctN = np.argwhere(diff == 0.).shape[0]
         print('{}'.format(correctN/len(train_labels)))
+    def test(self, test_feats):
+        pred_label = []
+        pred = self.knn.predict(test_feats)
+        for i in range(0,len(pred),100):
+            count = np.bincount(pred[i:i+100].astype(np.int64))
+            pred_label.append(np.argmax(count))
+        print('test done')
+        return pred_label
 
