@@ -1,5 +1,6 @@
 import numpy as np
 import os
+from knn import libKNN
 
 def op_load_csv(path):
     f = open(path, 'r')
@@ -58,9 +59,12 @@ def preprocess_data(label, feats, mode='norm'):
         N = label.shape[0] if isinstance(label, np.ndarray) else len(label)*label[0].shape[0]
         label_data = label
         feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1)).reshape(N,1)
+        unkeep = np.unique(np.argwhere(np.isnan(feats_data)==True)[:,0])
+        keep = np.ones(len(label_data)).astype(np.bool)
+        keep[unkeep] = False
     elif mode == 'xxx':
         pass
-    return label_data, feats_data
+    return label_data[keep], feats_data[keep]
 
 def main():
     train_dir = './train/'
@@ -74,8 +78,11 @@ def main():
     train_labels, train_feats = preprocess_data(labels, feats, mode='norm') #133400 frames, each frame has 15 channels.
 
     # model init and training
+    classifier = libKNN(n_neighbors=5, algo='auto')
+    classifier.train(train_labels, train_feats)
 
     # evaluation on training set
+    classifier.eval(train_labels, train_feats)
 
     # inference for test set
     # test_file_names: all file names, [0023.npy, 1245.pny, ....]
