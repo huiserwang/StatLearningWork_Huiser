@@ -1,0 +1,21 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: run",
+            "type": "python",
+            "cwd": "/home/wangxuehui/work/",
+            "request": "launch",
+            "program": "run.py",
+            // "program": "${file}",
+            //"args": ["WSconfigs/maskrcnn_baseline/maskrcnn_r50_fpn_1x_test.py", "--launcher", "none", "--seed", "0", "--deterministic"],
+            "console": "integratedTerminal",
+            "python": "/home/wangxuehui/miniconda3/envs/stat/bin/python3.8",
+            "justMyCode": false
+
+        }
+    ]
+}
