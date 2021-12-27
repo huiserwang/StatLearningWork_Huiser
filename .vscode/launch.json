@@ -16,6 +16,19 @@
             "python": "/home/wangxuehui/miniconda3/envs/stat/bin/python3.8",
             "justMyCode": false
 
-        }
+        },
+        {
+            "name": "Python: bayes",
+            "type": "python",
+            "cwd": "/home/wangxuehui/work/",
+            "request": "launch",
+            "program": "bayes.py",
+            // "program": "${file}",
+            //"args": ["WSconfigs/maskrcnn_baseline/maskrcnn_r50_fpn_1x_test.py", "--launcher", "none", "--seed", "0", "--deterministic"],
+            "console": "integratedTerminal",
+            "python": "/home/wangxuehui/miniconda3/envs/stat/bin/python3.8",
+            "justMyCode": false
+
+        },
     ]
 }

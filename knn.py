@@ -15,6 +15,7 @@ class libKNN():
         diff = pred - train_labels
         correctN = np.argwhere(diff == 0.).shape[0]
         print('{}'.format(correctN/len(train_labels)))
+        
     def test(self, test_feats):
         pred_label = []
         pred = self.knn.predict(test_feats)

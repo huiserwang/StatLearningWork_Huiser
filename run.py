@@ -1,6 +1,7 @@
 import numpy as np
 import os
 from knn import libKNN
+from bayes import libBayes
 import glob
 
 def op_load_csv(path):
@@ -106,13 +107,18 @@ def main():
 
     # model init and training
     #KNN model
-    classifier = libKNN(n_neighbors=5, algo='auto')
+    #classifier = libKNN(n_neighbors=5, algo='auto')
     #SVM model
+
+    #Bayes model
+    classifier = libBayes(n=20)
     #other model
+    
+    #model training
     classifier.train(train_labels, train_feats)
 
     # evaluation on training set
-    # classifier.eval(train_labels, train_feats)
+    classifier.eval(train_labels, train_feats)
 
     # inference for test set
     pred_labels = classifier.test(test_feats)
