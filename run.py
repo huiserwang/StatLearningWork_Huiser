@@ -3,6 +3,7 @@ import os
 from knn import libKNN
 from bayes import libBayes
 from adaboost import libAdaboost
+from cnn import libCNN
 import glob
 
 def op_load_csv(path):
@@ -76,7 +77,7 @@ def preprocess_data(feats, label=None, mode='norm', shuffle=True, test=False):
         if test:
             feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1) + 1e-5).reshape(N,1)
         else:
-            feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1)).reshape(N,1)
+            feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1) + 1e-5).reshape(N,1)
             unkeep = np.unique(np.argwhere(np.isnan(feats_data)==True)[:,0])
         keep = np.ones(feats_data.shape[0]).astype(np.bool)
         if not test:
@@ -103,7 +104,7 @@ def main():
     test_names, test_feat = op_get_test(test_dir)
 
     # preprocess
-    train_labels, train_feats = preprocess_data(feats, label=labels, mode='norm') #133400 frames, each frame has 15 channels.
+    train_labels, train_feats = preprocess_data(feats, label=labels, mode='norm', shuffle=False) #133400 frames, each frame has 15 channels.  #shuffle=False for cnn
     test_feats = preprocess_data(test_feat, mode='norm', shuffle=False, test=True)
 
     # model init and training
@@ -114,12 +115,13 @@ def main():
     #Bayes model
     #classifier = libBayes(n=20)
     #AdaBoost
-    classifier = libAdaboost(
-                    base_estimator_cfg={"max_depth":3, "min_samples_leaf":5, "min_samples_split":20},
-                    n_estimators=600,
-                    lr=0.8
-    )
-    #other model
+    #classifier = libAdaboost(
+    #                base_estimator_cfg={"max_depth":3, "min_samples_leaf":5, "min_samples_split":20},
+    #                n_estimators=600,
+    #                lr=0.8
+    #)
+    #deep model
+    classifier = libCNN(train_feats, train_labels)
     
     #model training
     classifier.train(train_labels, train_feats)
