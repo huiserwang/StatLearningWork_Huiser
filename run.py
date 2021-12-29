@@ -78,6 +78,7 @@ def preprocess_data(feats, label=None, mode='norm', shuffle=True, test=False):
             feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1) + 1e-5).reshape(N,1)
         else:
             feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1) + 1e-5).reshape(N,1)
+            #feats_data = feats
             unkeep = np.unique(np.argwhere(np.isnan(feats_data)==True)[:,0])
         keep = np.ones(feats_data.shape[0]).astype(np.bool)
         if not test:
@@ -121,16 +122,19 @@ def main():
     #                lr=0.8
     #)
     #deep model
-    classifier = libCNN(train_feats, train_labels)
+    classifier = libCNN(train_feats, train_labels, test_feats, epoch=40)
     
     #model training
-    classifier.train(train_labels, train_feats)
+    #classifier.train(train_labels, train_feats)  #for non cnn
+    classifier.train()  #for cnn
 
     # evaluation on training set
-    classifier.eval(train_labels, train_feats)
+    #classifier.eval(train_labels, train_feats)
+    classifier.eval()  #for cnn
 
     # inference for test set
-    pred_labels = classifier.test(test_feats)
+    #pred_labels = classifier.test(test_feats)
+    pred_labels = classifier.test()  #for cnn
     # test_file_names: all file names, [0023.npy, 1245.pny, ....]
     # test_pred_labels: predicted labels for each file, [0,1,2,0,....]
     # len(test_file_names) == len(test_pred_labels)
