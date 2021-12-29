@@ -2,6 +2,7 @@ import numpy as np
 import os
 from knn import libKNN
 from bayes import libBayes
+from adaboost import libAdaboost
 import glob
 
 def op_load_csv(path):
@@ -94,7 +95,7 @@ def main():
     train_dir = './train/'
     test_dir  = './test/'
     label_train = './label_train.csv'
-    out_path = '/home/wangxuehui/work/test_result_1215_03.csv'
+    out_path = '/home/wangxuehui/work/test_result_adaboost_default_3_5_20_600.csv'
 
     # load labels and corresponding feats
     label = op_load_csv(label_train)
@@ -111,7 +112,13 @@ def main():
     #SVM model
 
     #Bayes model
-    classifier = libBayes(n=20)
+    #classifier = libBayes(n=20)
+    #AdaBoost
+    classifier = libAdaboost(
+                    base_estimator_cfg={"max_depth":3, "min_samples_leaf":5, "min_samples_split":20},
+                    n_estimators=600,
+                    lr=0.8
+    )
     #other model
     
     #model training
