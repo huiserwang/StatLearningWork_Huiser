@@ -3,8 +3,10 @@ import os
 from knn import libKNN
 from bayes import libBayes
 from adaboost import libAdaboost
-from cnn import libCNN
+from convnet import libCNN
+from svm import libSVM
 import glob
+import argparse
 
 def op_load_csv(path):
     f = open(path, 'r')
@@ -77,7 +79,7 @@ def preprocess_data(feats, label=None, mode='norm', shuffle=True, test=False):
         if test:
             feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1) + 1e-5).reshape(N,1)
         else:
-            feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1) + 1e-5).reshape(N,1)
+            feats_data = (feats - feats.min(axis=1).reshape(N,1)) / (feats.max(axis=1) - feats.min(axis=1)).reshape(N,1)
             #feats_data = feats
             unkeep = np.unique(np.argwhere(np.isnan(feats_data)==True)[:,0])
         keep = np.ones(feats_data.shape[0]).astype(np.bool)
@@ -93,11 +95,11 @@ def preprocess_data(feats, label=None, mode='norm', shuffle=True, test=False):
     else:
         return feats_data[keep][idx]
 
-def main():
+def main(args):
     train_dir = './train/'
     test_dir  = './test/'
     label_train = './label_train.csv'
-    out_path = '/home/wangxuehui/work/test_result_adaboost_default_3_5_20_600.csv'
+    out_path = args.out
 
     # load labels and corresponding feats
     label = op_load_csv(label_train)
@@ -110,31 +112,45 @@ def main():
 
     # model init and training
     #KNN model
-    #classifier = libKNN(n_neighbors=5, algo='auto')
+    if args.method == 'knn':
+        classifier = libKNN(n_neighbors=5, algo='auto')
     #SVM model
-
+    elif args.method == 'svm':
+        classifier = libSVM(C=1.0, kernel='rbf',gamma=0.1)
     #Bayes model
-    #classifier = libBayes(n=20)
+    elif args.method == 'bayes':
+        classifier = libBayes(n=20)
     #AdaBoost
-    #classifier = libAdaboost(
-    #                base_estimator_cfg={"max_depth":3, "min_samples_leaf":5, "min_samples_split":20},
-    #                n_estimators=600,
-    #                lr=0.8
-    #)
+    elif args.method == 'adaboost':
+        classifier = libAdaboost(
+                        base_estimator_cfg={"max_depth":3, "min_samples_leaf":5, "min_samples_split":20},
+                        n_estimators=600,
+                        lr=0.8)
     #deep model
-    classifier = libCNN(train_feats, train_labels, test_feats, epoch=40)
-    
+    elif args.method == 'cnn':
+        classifier = libCNN(train_dir, test_dir, label_train, epoch=500)
+    else:
+        ValueError("Only SVM, KNN, AdaBoost, Bayes Classifier and ConvNet are available.")
+
     #model training
-    #classifier.train(train_labels, train_feats)  #for non cnn
-    classifier.train()  #for cnn
+    if args.method == 'cnn':
+        classifier.train()  #for cnn
+        
+    else:
+        classifier.train(train_labels, train_feats)  #for non cnn
 
     # evaluation on training set
-    #classifier.eval(train_labels, train_feats)
-    classifier.eval()  #for cnn
+    if args.method == 'cnn':
+        print('eval has been done in training!')
+    else:
+        classifier.eval(train_labels, train_feats)
 
     # inference for test set
-    #pred_labels = classifier.test(test_feats)
-    pred_labels = classifier.test()  #for cnn
+    if args.method == 'cnn':
+        pred_labels = classifier.test()  #for cnn
+    else:
+        pred_labels = classifier.test(test_feats)
+    
     # test_file_names: all file names, [0023.npy, 1245.pny, ....]
     # test_pred_labels: predicted labels for each file, [0,1,2,0,....]
     # len(test_file_names) == len(test_pred_labels)
@@ -143,4 +159,8 @@ def main():
     op_write_csv(test_file_names, test_pred_labels, out=out_path)
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--method', type=str, default='knn')
+    parser.add_argument('--out', type=str, default='/home/huiser/Desktop/Codes/statLearningWork_SJTU/default_exp_knn.csv')
+    args = parser.parse_args()
+    main(args)

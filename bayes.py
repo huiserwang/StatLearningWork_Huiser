@@ -1,7 +1,6 @@
 '''
 朴素贝叶斯模型
 '''
-import pandas as pd 
 import numpy as np 
 from sklearn.datasets import load_iris
 from collections import defaultdict

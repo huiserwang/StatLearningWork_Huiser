@@ -7,13 +7,13 @@
         {
             "name": "Python: run",
             "type": "python",
-            "cwd": "/home/wangxuehui/work/",
+            "cwd": "/home/huiser/Desktop/Codes/statLearningWork_SJTU/",
             "request": "launch",
             "program": "run.py",
             // "program": "${file}",
             //"args": ["WSconfigs/maskrcnn_baseline/maskrcnn_r50_fpn_1x_test.py", "--launcher", "none", "--seed", "0", "--deterministic"],
             "console": "integratedTerminal",
-            "python": "/home/wangxuehui/miniconda3/envs/stat/bin/python3.8",
+            "python": "/home/huiser/miniconda3/envs/mmdet/bin/python3.7",
             "justMyCode": false
 
         },
